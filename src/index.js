@@ -41,12 +41,17 @@
  * @property {string} file.url — image URL
  */
 
-import './index.css';
+import "./index.css";
 
-import Ui from './ui';
-import Uploader from './uploader';
+import Ui from "./ui";
+import Uploader from "./uploader";
 
-import { IconAddBorder, IconStretch, IconAddBackground, IconPicture } from '@codexteam/icons';
+import {
+  IconAddBorder,
+  IconStretch,
+  IconAddBackground,
+  IconPicture,
+} from "@codexteam/icons";
 
 /**
  * @typedef {object} ImageConfig
@@ -94,7 +99,7 @@ export default class ImageTool {
   static get toolbox() {
     return {
       icon: IconPicture,
-      title: 'Image',
+      title: "Image",
     };
   }
 
@@ -106,21 +111,21 @@ export default class ImageTool {
   static get tunes() {
     return [
       {
-        name: 'withBorder',
+        name: "withBorder",
         icon: IconAddBorder,
-        title: 'With border',
+        title: "With border",
         toggle: true,
       },
       {
-        name: 'stretched',
+        name: "stretched",
         icon: IconStretch,
-        title: 'Stretch image',
+        title: "Stretch image",
         toggle: true,
       },
       {
-        name: 'withBackground',
+        name: "withBackground",
         icon: IconAddBackground,
-        title: 'With background',
+        title: "With background",
         toggle: true,
       },
     ];
@@ -143,13 +148,15 @@ export default class ImageTool {
      * Tool's initial config
      */
     this.config = {
-      endpoints: config.endpoints || '',
+      endpoints: config.endpoints || "",
       additionalRequestData: config.additionalRequestData || {},
       additionalRequestHeaders: config.additionalRequestHeaders || {},
-      field: config.field || 'image',
-      types: config.types || 'image/*',
-      captionPlaceholder: this.api.i18n.t(config.captionPlaceholder || 'Caption'),
-      buttonContent: config.buttonContent || '',
+      field: config.field || "image",
+      types: config.types || "image/*",
+      captionPlaceholder: this.api.i18n.t(
+        config.captionPlaceholder || "Caption"
+      ),
+      buttonContent: config.buttonContent || "",
       uploader: config.uploader || undefined,
       actions: config.actions || [],
     };
@@ -159,6 +166,7 @@ export default class ImageTool {
      */
     this.uploader = new Uploader({
       config: this.config,
+      blockId: this.block && this.block.id,
       onUpload: (response) => this.onUpload(response),
       onError: (error) => this.uploadingFailed(error),
     });
@@ -235,7 +243,7 @@ export default class ImageTool {
     // @see https://github.com/editor-js/image/pull/49
     const tunes = ImageTool.tunes.concat(this.config.actions);
 
-    return tunes.map(tune => ({
+    return tunes.map((tune) => ({
       icon: tune.icon,
       label: this.api.i18n.t(tune.title),
       name: tune.name,
@@ -243,7 +251,7 @@ export default class ImageTool {
       isActive: this.data[tune.name],
       onActivate: () => {
         /* If it'a user defined tune, execute it's callback stored in action property */
-        if (typeof tune.action === 'function') {
+        if (typeof tune.action === "function") {
           tune.action(tune.name);
 
           return;
@@ -290,7 +298,7 @@ export default class ImageTool {
        * Drag n drop file from into the Editor
        */
       files: {
-        mimeTypes: [ 'image/*' ],
+        mimeTypes: ["image/*"],
       },
     };
   }
@@ -306,7 +314,7 @@ export default class ImageTool {
    */
   async onPaste(event) {
     switch (event.type) {
-      case 'tag': {
+      case "tag": {
         const image = event.detail.data;
 
         /** Images from PDF */
@@ -321,13 +329,13 @@ export default class ImageTool {
         this.uploadUrl(image.src);
         break;
       }
-      case 'pattern': {
+      case "pattern": {
         const url = event.detail.data;
 
         this.uploadUrl(url);
         break;
       }
-      case 'file': {
+      case "file": {
         const file = event.detail.file;
 
         this.uploadFile(file);
@@ -351,11 +359,14 @@ export default class ImageTool {
   set data(data) {
     this.image = data.file;
 
-    this._data.caption = data.caption || '';
+    this._data.caption = data.caption || "";
     this.ui.fillCaption(this._data.caption);
 
     ImageTool.tunes.forEach(({ name: tune }) => {
-      const value = typeof data[tune] !== 'undefined' ? data[tune] === true || data[tune] === 'true' : false;
+      const value =
+        typeof data[tune] !== "undefined"
+          ? data[tune] === true || data[tune] === "true"
+          : false;
 
       this.setTune(tune, value);
     });
@@ -399,7 +410,7 @@ export default class ImageTool {
     if (response.success && response.file) {
       this.image = response.file;
     } else {
-      this.uploadingFailed('incorrect response: ' + JSON.stringify(response));
+      this.uploadingFailed("incorrect response: " + JSON.stringify(response));
     }
   }
 
@@ -411,11 +422,11 @@ export default class ImageTool {
    * @returns {void}
    */
   uploadingFailed(errorText) {
-    console.log('Image Tool: uploading failed because of', errorText);
+    console.log("Image Tool: uploading failed because of", errorText);
 
     this.api.notifier.show({
-      message: this.api.i18n.t('Couldn’t upload image. Please try another.'),
-      style: 'error',
+      message: this.api.i18n.t("Couldn’t upload image. Please try another."),
+      style: "error",
     });
     this.ui.hidePreloader();
   }
@@ -445,14 +456,15 @@ export default class ImageTool {
 
     this.ui.applyTune(tuneName, value);
 
-    if (tuneName === 'stretched') {
+    if (tuneName === "stretched") {
       /**
        * Wait until the API is ready
        */
-      Promise.resolve().then(() => {
-        this.block.stretched = value;
-      })
-        .catch(err => {
+      Promise.resolve()
+        .then(() => {
+          this.block.stretched = value;
+        })
+        .catch((err) => {
           console.error(err);
         });
     }
@@ -465,7 +477,7 @@ export default class ImageTool {
    * @returns {void}
    */
   uploadFile(file) {
-    this.uploader.uploadByFile(file, {
+    this.uploader.uploadByFile(file, this.block.id, {
       onPreview: (src) => {
         this.ui.showPreloader(src);
       },
@@ -480,6 +492,6 @@ export default class ImageTool {
    */
   uploadUrl(url) {
     this.ui.showPreloader(url);
-    this.uploader.uploadByUrl(url);
+    this.uploader.uploadByUrl(url, this.block.id);
   }
 }
